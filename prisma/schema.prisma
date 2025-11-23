@@ -1,0 +1,40 @@
+/**
+ * SunnyGPT - Prisma Database Schema
+ * 
+ * Author: Shamiur Rashid Sunny
+ * Website: https://shamiur.com
+ * 
+ * Database schema for SunnyGPT chat application
+ * Uses PostgreSQL (Neon) as the database provider
+ */
+
+// Prisma Client generator configuration
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Database connection configuration
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Chat model - represents a conversation
+model Chat {
+  id        String    @id @default(cuid())  // Unique identifier
+  title     String                          // Chat title/name
+  createdAt DateTime  @default(now())       // Creation timestamp
+  messages  Message[]                       // Related messages (one-to-many)
+}
+
+// Message model - represents individual messages in a chat
+model Message {
+  id        String   @id @default(cuid())                                      // Unique identifier
+  content   String                                                             // Message text content
+  role      String                                                             // Message role: 'user' or 'model'
+  chatId    String                                                             // Foreign key to Chat
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)  // Cascade delete when chat is deleted
+  createdAt DateTime @default(now())                                           // Creation timestamp
+  fileUrl   String?                                                            // Optional file attachment URL
+  fileType  String?                                                            // Optional file MIME type
+}
