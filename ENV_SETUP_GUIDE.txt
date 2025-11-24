@@ -1,0 +1,184 @@
+# SunnyGPT Environment Variables Template
+# © 2025 Shamiur Rashid Sunny - https://shamiur.com
+# 
+# INSTRUCTIONS:
+# 1. Copy the content below (lines starting with variable names)
+# 2. Create a new file named .env in your project root
+# 3. Paste the content and fill in your actual values
+# 4. For Vercel: Import the .env file in Project Settings > Environment Variables
+#
+# ============================================================================
+
+DATABASE_URL="postgresql://username:password@host.neon.tech/database?sslmode=require"
+GEMINI_API_KEY="your-gemini-api-key-here"
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
+NEXT_PUBLIC_SUPABASE_URL="https://your-project-id.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key-here"
+
+# ============================================================================
+# DETAILED INSTRUCTIONS FOR EACH VARIABLE:
+# ============================================================================
+
+# 1. DATABASE_URL (Required)
+# ----------------------------
+# Where to get: Neon Dashboard > Your Project > Connection Details
+# URL: https://console.neon.tech
+# 
+# Format: postgresql://[user]:[password]@[host]/[database]?sslmode=require
+# 
+# Example:
+# DATABASE_URL="postgresql://myuser:mypassword@ep-cool-name-123456.us-east-2.aws.neon.tech/neondb?sslmode=require"
+#
+# IMPORTANT: Must include ?sslmode=require at the end
+
+
+# 2. GEMINI_API_KEY (Optional)
+# -----------------------------
+# Where to get: https://makersuite.google.com/app/apikey
+# 
+# This is OPTIONAL - only needed if you want to use Google Gemini
+# If using OpenRouter (recommended), you can leave this empty
+#
+# Example:
+# GEMINI_API_KEY="AIzaSyABC123def456GHI789jkl012MNO345pqr"
+
+
+# 3. OPENROUTER_API_KEY (Required)
+# ---------------------------------
+# Where to get: https://openrouter.ai/keys
+# 
+# OpenRouter provides access to multiple AI models including FREE options
+# Currently using: meta-llama/llama-3.2-3b-instruct:free (completely free!)
+#
+# Steps to get:
+# 1. Go to https://openrouter.ai
+# 2. Sign up for free account
+# 3. Go to Keys section
+# 4. Create a new API key
+#
+# Example:
+# OPENROUTER_API_KEY="sk-or-v1-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz"
+
+
+# 4. NEXT_PUBLIC_SUPABASE_URL (Required)
+# ---------------------------------------
+# Where to get: Supabase Dashboard > Project Settings > API
+# URL: https://app.supabase.com/project/_/settings/api
+#
+# This is your Supabase project URL
+# NOTE: This is a PUBLIC variable (safe to expose in client-side code)
+#
+# Example:
+# NEXT_PUBLIC_SUPABASE_URL="https://abcdefghijklmnop.supabase.co"
+
+
+# 5. NEXT_PUBLIC_SUPABASE_ANON_KEY (Required)
+# --------------------------------------------
+# Where to get: Supabase Dashboard > Project Settings > API
+# URL: https://app.supabase.com/project/_/settings/api
+#
+# This is your Supabase anonymous/public key
+# NOTE: This is DESIGNED to be public - it's safe to expose
+#
+# Example:
+# NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiY2RlZmdoaWprbG1ub3AiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYzOTU4MjQwMCwiZXhwIjoxOTU1MTU4NDAwfQ.abc123def456ghi789"
+
+
+# ============================================================================
+# HOW TO IMPORT TO VERCEL:
+# ============================================================================
+
+# METHOD 1: Import .env file (Recommended)
+# -----------------------------------------
+# 1. Create a file named .env in your project root
+# 2. Copy the 5 variable lines above (DATABASE_URL, GEMINI_API_KEY, etc.)
+# 3. Fill in your actual values (remove quotes if needed)
+# 4. Go to: https://vercel.com/dashboard
+# 5. Select your project
+# 6. Go to: Settings > Environment Variables
+# 7. Click "Import .env" button (top right)
+# 8. Upload your .env file
+# 9. Vercel will automatically add all variables
+
+
+# METHOD 2: Add manually
+# ----------------------
+# 1. Go to: https://vercel.com/dashboard
+# 2. Select your project
+# 3. Go to: Settings > Environment Variables
+# 4. Click "Add New" button
+# 5. For each variable:
+#    - Key: DATABASE_URL
+#    - Value: your actual database URL
+#    - Environment: Select all (Production, Preview, Development)
+#    - Click "Save"
+# 6. Repeat for all 5 variables
+
+
+# ============================================================================
+# AFTER ADDING ENVIRONMENT VARIABLES:
+# ============================================================================
+
+# 1. Redeploy your application:
+#    - Go to Deployments tab
+#    - Click "..." on latest deployment
+#    - Click "Redeploy"
+#
+# 2. Or push a new commit to trigger automatic deployment
+#
+# 3. Verify deployment:
+#    - Check deployment logs for any errors
+#    - Test your application
+#    - Verify database connection works
+#    - Test AI chat functionality
+#    - Test file uploads
+
+
+# ============================================================================
+# TROUBLESHOOTING:
+# ============================================================================
+
+# Issue: "DATABASE_URL is not defined"
+# Solution: Make sure DATABASE_URL is added in Vercel and includes ?sslmode=require
+
+# Issue: "Failed to connect to database"
+# Solution: Check that your Neon database is active and connection string is correct
+
+# Issue: "OpenRouter API error"
+# Solution: Verify your OPENROUTER_API_KEY is valid and has credits (free tier available)
+
+# Issue: "Supabase storage error"
+# Solution: 
+#   1. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are correct
+#   2. Verify you created a bucket named "chat-files" in Supabase Storage
+#   3. Make sure the bucket is set to public
+
+
+# ============================================================================
+# SECURITY NOTES:
+# ============================================================================
+
+# ✅ SAFE TO EXPOSE (Public variables):
+#    - NEXT_PUBLIC_SUPABASE_URL
+#    - NEXT_PUBLIC_SUPABASE_ANON_KEY
+#    These are designed to be used in client-side code
+
+# ❌ NEVER EXPOSE (Secret variables):
+#    - DATABASE_URL
+#    - GEMINI_API_KEY
+#    - OPENROUTER_API_KEY
+#    These should ONLY be used in server-side code (API routes)
+
+# The .env file is already in .gitignore - it will NOT be committed to Git
+# This keeps your secrets safe!
+
+
+# ============================================================================
+# QUICK REFERENCE - Copy these lines to your .env file:
+# ============================================================================
+
+DATABASE_URL="postgresql://username:password@host.neon.tech/database?sslmode=require"
+GEMINI_API_KEY="your-gemini-api-key-here"
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
+NEXT_PUBLIC_SUPABASE_URL="https://your-project-id.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key-here"
