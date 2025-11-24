@@ -1,18 +1,5 @@
-/**
- * Home Page Component
- * 
- * Main page of the SunnyGPT application. Manages the overall layout including:
- * - Sidebar for chat history
- * - Main chat interface
- * - Footer with attribution
- * 
- * Handles state management for current chat selection and chat lifecycle events.
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Main page - handles the overall app layout
+// Built by Shamiur Rashid Sunny (shamiur.com)
 
 'use client'
 
@@ -22,7 +9,7 @@ import { Sidebar } from '@/components/sidebar'
 import { Footer } from '@/components/footer'
 
 export default function Home() {
-  // State to track the currently active chat ID
+  // Track which chat is currently open
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
 
   // Handler for creating a new chat (resets current chat ID)

@@ -1,40 +1,32 @@
-// Prisma Database Schema
-// 
-// Database schema for SunnyGPT chat application.
-// Uses PostgreSQL (Neon) as the database provider.
-// 
-// @author Shamiur Rashid Sunny
-// @website https://shamiur.com
-// @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
-// @license Proprietary - Usage requires explicit permission from the author
+// Database schema for SunnyGPT
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Using PostgreSQL via Neon for the database
 
-// Prisma Client generator configuration
 generator client {
   provider = "prisma-client-js"
 }
 
-// Database connection configuration
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Chat model - represents a conversation
+// Chat conversations
 model Chat {
-  id        String    @id @default(cuid())  // Unique identifier
-  title     String                          // Chat title/name
-  createdAt DateTime  @default(now())       // Creation timestamp
-  messages  Message[]                       // Related messages (one-to-many)
+  id        String    @id @default(cuid())
+  title     String
+  createdAt DateTime  @default(now())
+  messages  Message[]
 }
 
-// Message model - represents individual messages in a chat
+// Individual messages in chats
 model Message {
-  id        String   @id @default(cuid())                                      // Unique identifier
-  content   String                                                             // Message text content
-  role      String                                                             // Message role: 'user' or 'model'
-  chatId    String                                                             // Foreign key to Chat
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)  // Cascade delete when chat is deleted
-  createdAt DateTime @default(now())                                           // Creation timestamp
-  fileUrl   String?                                                            // Optional file attachment URL
-  fileType  String?                                                            // Optional file MIME type
+  id        String   @id @default(cuid())
+  content   String
+  role      String   // 'user' or 'model'
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  fileUrl   String?  // Optional file attachment
+  fileType  String?  // MIME type of the file
 }

@@ -1,23 +1,6 @@
-/**
- * Speech Recognition and Text-to-Speech Module
- * 
- * This module provides voice input (speech-to-text) and voice output (text-to-speech)
- * functionality using the Web Speech API. Includes classes for managing voice recognition
- * and speech synthesis with comprehensive error handling and browser compatibility checks.
- * 
- * Features:
- * - VoiceRecognition: Convert speech to text with real-time and final results
- * - VoiceSpeaker: Convert text to speech with customizable voice options
- * - Browser compatibility detection
- * - Singleton pattern for efficient resource management
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
-
-// Speech Recognition and Text-to-Speech utilities using Web Speech API
+// Speech recognition and text-to-speech using Web Speech API
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Handles voice input and voice output for the chat
 
 // Type definitions for Web Speech API
 interface SpeechRecognitionEvent extends Event {

@@ -1,14 +1,5 @@
-/**
- * Root Layout Component
- * 
- * The root layout for the Next.js application. Defines the HTML structure,
- * metadata, and global font configuration for all pages.
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Root layout for the app
+// Built by Shamiur Rashid Sunny (shamiur.com)
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
