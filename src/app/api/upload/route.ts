@@ -1,57 +1,36 @@
-/**
- * File Upload API Route
- * 
- * This API endpoint handles file uploads to Supabase Storage.
- * Accepts files via multipart/form-data and stores them in the 'chat-files' bucket.
- * Returns the public URL for accessing the uploaded file.
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// File upload handler - sends files to Supabase Storage
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// This handles image and document uploads for the chat
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-/**
- * POST /api/upload
- * 
- * Uploads a file to Supabase Storage and returns the public URL.
- * 
- * @param req - Request with FormData containing the file
- * @returns JSON response with file URL and path
- */
 export async function POST(req: NextRequest) {
     try {
-        // Parse the multipart form data from the request
         const formData = await req.formData()
         const file = formData.get('file') as File
 
-        // Validate that a file was provided
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
         }
 
-        // Generate a unique filename to prevent collisions
-        // Format: timestamp-randomstring.extension
+        // Create a unique filename using timestamp + random string
         const fileExt = file.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
         const filePath = `uploads/${fileName}`
 
-        // Convert the file to a buffer for upload
+        // Convert to buffer for Supabase
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
-        // Upload file to Supabase Storage in the 'chat-files' bucket
+        // Upload to Supabase storage
         const { data, error } = await supabase.storage
             .from('chat-files')
             .upload(filePath, buffer, {
                 contentType: file.type,
-                upsert: false, // Don't overwrite existing files
+                upsert: false,
             })
 
-        // Handle upload errors
         if (error) {
             console.error('Supabase upload error:', error)
             return NextResponse.json(
@@ -65,7 +44,7 @@ export async function POST(req: NextRequest) {
             .from('chat-files')
             .getPublicUrl(filePath)
 
-        // Return the file URL and path to the client
+        // Send back the URL
         return NextResponse.json({
             url: urlData.publicUrl,
             path: filePath,
