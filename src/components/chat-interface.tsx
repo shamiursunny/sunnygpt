@@ -1,22 +1,6 @@
-/**
- * Chat Interface Component
- * 
- * Main chat interface component that handles all user interactions including:
- * - Sending and receiving messages
- * - File uploads via Supabase
- * - Voice input (speech-to-text) using Web Speech API
- * - Voice output (text-to-speech) for AI responses
- * - Message deletion with optimistic updates
- * - Real-time message display with auto-scroll
- * 
- * This component manages the entire chat experience and integrates with multiple
- * backend APIs for chat operations, file storage, and AI responses.
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Main chat interface - where all the magic happens
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Handles messaging, file uploads, voice stuff, and the whole chat UI
 
 'use client'
 
@@ -26,7 +10,7 @@ import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-
 import { cn } from '@/lib/utils'
 import { getVoiceRecognition, getVoiceSpeaker, isSpeechRecognitionSupported, isSpeechSynthesisSupported } from '@/lib/speech'
 
-// Message interface defining the structure of chat messages
+// What a message looks like
 interface Message {
     id: string
     content: string
@@ -54,7 +38,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
     const voiceRecognitionRef = useRef<any>(null)
     const voiceSpeakerRef = useRef<any>(null)
 
-    // Prevent hydration mismatch
+    // Fix hydration issues by waiting for mount
     useEffect(() => {
         setMounted(true)
     }, [])
@@ -63,7 +47,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
         if (chatId) {
             loadMessages()
         } else {
-            // Clear messages when starting a new chat
+            // New chat? Clear the screen
             setMessages([])
         }
     }, [chatId])
@@ -72,7 +56,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
         scrollToBottom()
     }, [messages])
 
-    // Initialize voice services
+    // Set up voice features if the browser supports them
     useEffect(() => {
         if (isSpeechRecognitionSupported()) {
             try {
@@ -120,7 +104,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
 
     const handleDeleteMessage = async (messageId: string) => {
         try {
-            // Optimistic update
+            // Remove it from UI instantly (optimistic update)
             setMessages(messages.filter((msg) => msg.id !== messageId))
 
             const response = await fetch(`/api/messages/${messageId}`, {
@@ -180,7 +164,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
             setIsSpeaking(false)
         }
 
-        // Optimistically add user message
+        // Show the user's message immediately
         const tempUserMessage: Message = {
             id: Date.now().toString(),
             content: userMessage,

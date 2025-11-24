@@ -1,18 +1,6 @@
-/**
- * Sidebar Component
- * 
- * This component displays the chat history sidebar with the following features:
- * - List of all chat conversations
- * - Inline editing of chat titles
- * - Delete chat functionality with confirmation
- * - Optimistic UI updates for instant feedback
- * - Smooth animations and hover effects
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Sidebar component - shows your chat history
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Lets you manage chats, rename them, or delete them
 
 'use client'
 
@@ -37,7 +25,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted }: SidebarProps) {
-    // State for storing the list of chats
+    // Keep track of all the chats
     const [chats, setChats] = useState<Chat[]>([])
 
     // State for tracking which chat is being edited (null if none)
@@ -71,10 +59,7 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted 
         }
     }, [editingChatId])
 
-    /**
-     * Fetches the list of chats from the API
-     * Called on component mount and after operations that modify the chat list
-     */
+    // Grab the list of chats from the server
     const loadChats = async () => {
         try {
             const response = await fetch('/api/chats')
@@ -85,13 +70,7 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted 
         }
     }
 
-    /**
-     * Handles chat deletion
-     * Uses optimistic update: removes chat from UI immediately, then makes API call
-     * Rolls back if API call fails
-     * 
-     * @param chatId - The ID of the chat to delete
-     */
+    // Delete a chat - optimistic update makes it feel snappy
     const handleDeleteChat = async (chatId: string) => {
         try {
             // Optimistic update: remove chat from UI immediately
@@ -118,12 +97,7 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted 
         }
     }
 
-    /**
-     * Enters edit mode for a chat title
-     * Sets the editing state and populates the input with current title
-     * 
-     * @param chat - The chat object to edit
-     */
+    // Start renaming a chat
     const startEdit = (chat: Chat) => {
         setEditingChatId(chat.id)
         setEditTitle(chat.title)
@@ -137,13 +111,7 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted 
         setEditTitle('')
     }
 
-    /**
-     * Saves the edited chat title
-     * Uses optimistic update: updates UI immediately, then makes API call
-     * Rolls back if API call fails or title is empty
-     * 
-     * @param chatId - The ID of the chat being edited
-     */
+    // Save the new title
     const saveEdit = async (chatId: string) => {
         // Don't save if title is empty
         if (!editTitle.trim()) {

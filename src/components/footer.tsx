@@ -1,13 +1,5 @@
-/**
- * Footer Component
- * 
- * Footer component displaying author attribution and website link.
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Simple footer with attribution
+// Built by Shamiur Rashid Sunny (shamiur.com)
 
 'use client'
 

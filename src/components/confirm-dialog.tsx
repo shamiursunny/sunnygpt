@@ -1,20 +1,6 @@
-/**
- * Confirmation Dialog Component
- * 
- * A reusable confirmation dialog component for destructive actions.
- * Features:
- * - Modal overlay with backdrop blur
- * - Keyboard shortcuts (Enter to confirm, Escape to cancel)
- * - Customizable title, message, and button text
- * - Different variants (danger, warning, info) with color coding
- * - Smooth animations
- * - Client-side only rendering to prevent hydration errors
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Reusable confirmation dialog
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Handles keyboard shortcuts (Enter/Escape) and focus management
 
 'use client'
 
@@ -47,13 +33,12 @@ export function ConfirmDialog({
     // This prevents hydration errors by ensuring dialog only renders on client
     const [mounted, setMounted] = useState(false)
 
-    // Set mounted to true after component mounts on client
-    // This ensures the dialog is not rendered during server-side rendering
+    // Wait for mount to avoid hydration mismatch
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    // Set up keyboard event listeners for Enter and Escape keys
+    // Handle keyboard shortcuts
     useEffect(() => {
         // Handler for Escape key - cancels the dialog
         const handleEscape = (e: KeyboardEvent) => {

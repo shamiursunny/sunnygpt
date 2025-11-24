@@ -1,19 +1,5 @@
-/**
- * Message Bubble Component
- * 
- * Displays individual chat messages with the following features:
- * - Different styling for user vs AI messages
- * - Support for file attachments (images)
- * - Markdown rendering for formatted text
- * - Delete functionality for user messages
- * - Smooth fade-out animation on deletion
- * - Hover state for showing delete button
- * 
- * @author Shamiur Rashid Sunny
- * @website https://shamiur.com
- * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
- * @license Proprietary - Usage requires explicit permission from the author
- */
+// Individual message bubble - handles markdown, images, and deletion
+// Built by Shamiur Rashid Sunny (shamiur.com)
 
 'use client'
 
@@ -32,7 +18,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ id, role, content, fileUrl, onDelete }: MessageBubbleProps) {
-    // Determine if this is a user message (vs AI message)
+    // Check if it's a user message or AI
     const isUser = role === 'user'
 
     // Track hover state to show/hide delete button
@@ -41,10 +27,7 @@ export function MessageBubble({ id, role, content, fileUrl, onDelete }: MessageB
     // Track deletion state for fade-out animation
     const [isDeleting, setIsDeleting] = useState(false)
 
-    /**
-     * Handles message deletion
-     * Sets deleting state for animation, then calls the delete callback
-     */
+    // Handle deleting a message with a nice fade-out effect
     const handleDelete = async () => {
         // Don't delete if no callback provided
         if (!onDelete) return
