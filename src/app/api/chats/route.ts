@@ -1,13 +1,15 @@
 /**
- * SunnyGPT - Chats API Route
+ * Chats API Route - Manages Chat Conversations
  * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
- * 
- * API endpoints for managing chat conversations:
+ * This API endpoint provides CRUD operations for chat conversations:
  * - GET: Retrieve all chats with their latest message
  * - DELETE: Delete a specific chat and all its messages (cascade)
  * - PATCH: Update a chat's title
+ * 
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 import { NextRequest, NextResponse } from 'next/server'

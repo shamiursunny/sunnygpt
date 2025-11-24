@@ -1,10 +1,12 @@
 /**
- * SunnyGPT - Message Deletion API Route
+ * Message Deletion API Route
  * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * This API endpoint handles deletion of individual messages from chat conversations.
  * 
- * API endpoint for deleting individual messages from a chat conversation
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 import { NextRequest, NextResponse } from 'next/server'

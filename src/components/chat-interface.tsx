@@ -1,3 +1,23 @@
+/**
+ * Chat Interface Component
+ * 
+ * Main chat interface component that handles all user interactions including:
+ * - Sending and receiving messages
+ * - File uploads via Supabase
+ * - Voice input (speech-to-text) using Web Speech API
+ * - Voice output (text-to-speech) for AI responses
+ * - Message deletion with optimistic updates
+ * - Real-time message display with auto-scroll
+ * 
+ * This component manages the entire chat experience and integrates with multiple
+ * backend APIs for chat operations, file storage, and AI responses.
+ * 
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
+ */
+
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
@@ -6,6 +26,7 @@ import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-
 import { cn } from '@/lib/utils'
 import { getVoiceRecognition, getVoiceSpeaker, isSpeechRecognitionSupported, isSpeechSynthesisSupported } from '@/lib/speech'
 
+// Message interface defining the structure of chat messages
 interface Message {
     id: string
     content: string
@@ -13,9 +34,10 @@ interface Message {
     fileUrl?: string | null
 }
 
+// Component props interface
 interface ChatInterfaceProps {
-    chatId?: string
-    onChatCreated?: (chatId: string) => void
+    chatId?: string // Optional chat ID for existing conversations
+    onChatCreated?: (chatId: string) => void // Callback when a new chat is created
 }
 
 export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {

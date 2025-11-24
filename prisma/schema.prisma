@@ -1,11 +1,13 @@
 /**
- * SunnyGPT - Prisma Database Schema
+ * Prisma Database Schema
  * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * Database schema for SunnyGPT chat application.
+ * Uses PostgreSQL (Neon) as the database provider.
  * 
- * Database schema for SunnyGPT chat application
- * Uses PostgreSQL (Neon) as the database provider
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 // Prisma Client generator configuration

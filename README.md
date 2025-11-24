@@ -1,11 +1,11 @@
 # SunnyGPT - ChatGPT Clone
 
+> **© 2025 Shamiur Rashid Sunny - All Rights Reserved**  
+> **Website**: [shamiur.com](https://shamiur.com)  
+> **License**: Proprietary - NOT Open Source  
+> ⚠️ **Usage of this software requires explicit written permission from the author.**
+
 A modern ChatGPT clone built with Next.js, Gemini AI, Neon DB, and Supabase.
-
-## Author
-
-**Shamiur Rashid Sunny**  
-Website: [shamiur.com](https://shamiur.com)
 
 ---
 
@@ -86,6 +86,14 @@ npx prisma migrate deploy
 
 ## License
 
-Created by **Shamiur Rashid Sunny** - [shamiur.com](https://shamiur.com)
+**Proprietary Software - All Rights Reserved**
 
-All rights reserved © 2025
+This software is the exclusive property of **Shamiur Rashid Sunny** ([shamiur.com](https://shamiur.com)).
+
+- ❌ **NOT open source**
+- ❌ **NOT free to use without permission**
+- ✅ **Requires explicit written authorization** from the author for any use
+
+See the [LICENSE](LICENSE) file for complete terms and conditions.
+
+**Copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved**

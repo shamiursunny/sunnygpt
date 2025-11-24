@@ -1,4 +1,7 @@
 {
+  // TypeScript Configuration for SunnyGPT
+  // © 2025 Shamiur Rashid Sunny - All Rights Reserved
+  // https://shamiur.com
   "compilerOptions": {
     "target": "ES2017",
     "lib": [

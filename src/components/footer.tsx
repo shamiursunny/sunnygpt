@@ -1,10 +1,12 @@
 /**
- * SunnyGPT - Footer Component
+ * Footer Component
  * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * Footer component displaying author attribution and website link.
  * 
- * Footer component displaying author attribution and website link
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 'use client'

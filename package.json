@@ -2,10 +2,18 @@
   "name": "sunnygpt",
   "version": "0.1.0",
   "private": true,
+  "author": "Shamiur Rashid Sunny (https://shamiur.com)",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node -r dotenv/config node_modules/next/dist/bin/next start -p 4000",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "lint": "eslint"
   },
   "dependencies": {

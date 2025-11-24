@@ -1,8 +1,5 @@
 /**
- * SunnyGPT - Sidebar Component
- * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * Sidebar Component
  * 
  * This component displays the chat history sidebar with the following features:
  * - List of all chat conversations
@@ -10,6 +7,11 @@
  * - Delete chat functionality with confirmation
  * - Optimistic UI updates for instant feedback
  * - Smooth animations and hover effects
+ * 
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 'use client'

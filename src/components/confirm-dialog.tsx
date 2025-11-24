@@ -1,8 +1,5 @@
 /**
- * SunnyGPT - Confirmation Dialog Component
- * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * Confirmation Dialog Component
  * 
  * A reusable confirmation dialog component for destructive actions.
  * Features:
@@ -12,6 +9,11 @@
  * - Different variants (danger, warning, info) with color coding
  * - Smooth animations
  * - Client-side only rendering to prevent hydration errors
+ * 
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 'use client'

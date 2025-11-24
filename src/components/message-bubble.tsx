@@ -1,8 +1,5 @@
 /**
- * SunnyGPT - Message Bubble Component
- * 
- * Author: Shamiur Rashid Sunny
- * Website: https://shamiur.com
+ * Message Bubble Component
  * 
  * Displays individual chat messages with the following features:
  * - Different styling for user vs AI messages
@@ -11,6 +8,11 @@
  * - Delete functionality for user messages
  * - Smooth fade-out animation on deletion
  * - Hover state for showing delete button
+ * 
+ * @author Shamiur Rashid Sunny
+ * @website https://shamiur.com
+ * @copyright © 2025 Shamiur Rashid Sunny - All Rights Reserved
+ * @license Proprietary - Usage requires explicit permission from the author
  */
 
 'use client'
