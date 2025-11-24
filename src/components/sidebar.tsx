@@ -22,9 +22,11 @@ interface SidebarProps {
     onChatSelect: (chatId: string) => void    // Callback when a chat is selected
     onNewChat: () => void                     // Callback when "New Chat" is clicked
     onChatDeleted?: () => void                // Callback when current chat is deleted
+    isOpen?: boolean                          // Mobile: is sidebar open?
+    onClose?: () => void                      // Mobile: close sidebar callback
 }
 
-export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted }: SidebarProps) {
+export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted, isOpen = false, onClose }: SidebarProps) {
     // Keep track of all the chats
     const [chats, setChats] = useState<Chat[]>([])
 
@@ -163,16 +165,36 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted 
 
     return (
         <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={onClose}
+                />
+            )}
+
             {/* Main sidebar container */}
-            <div className="w-64 border-r bg-muted/40 flex flex-col h-full">
+            <div className={cn(
+                "w-64 border-r bg-muted/40 flex flex-col h-full transition-transform duration-300 ease-in-out",
+                "fixed md:relative z-50 bg-background md:bg-muted/40", // Mobile positioning
+                isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0" // Slide in/out
+            )}>
                 {/* Header with "New Chat" button */}
-                <div className="p-4 border-b">
+                <div className="p-4 border-b flex items-center gap-2">
                     <button
                         onClick={onNewChat}
-                        className="w-full flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                         <Plus className="h-4 w-4" />
                         <span>New Chat</span>
+                    </button>
+
+                    {/* Mobile Close Button */}
+                    <button
+                        onClick={onClose}
+                        className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
+                    >
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
 
