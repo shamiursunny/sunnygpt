@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { ChatInterface } from '@/components/chat-interface'
 import { Sidebar } from '@/components/sidebar'
 import { Footer } from '@/components/footer'
-import { Menu, Plus } from 'lucide-react'
+import { Menu, Plus, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Home() {
@@ -54,13 +54,23 @@ export default function Home() {
         />
         <main className="flex-1 flex flex-col w-full">
           <header className="border-b p-4 flex items-center gap-3">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted transition-colors"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+            {currentChatId ? (
+              <button
+                onClick={handleNewChat}
+                className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted transition-colors"
+                aria-label="Back to new chat"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex-1">
               SunnyGPT
             </h1>
