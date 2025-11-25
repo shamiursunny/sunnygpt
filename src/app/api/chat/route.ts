@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { openai, DEFAULT_MODEL } from '@/lib/openrouter'
+import { getAIResponse } from '@/lib/ai-client'
 
 export async function POST(req: NextRequest) {
     try {
@@ -46,21 +46,15 @@ export async function POST(req: NextRequest) {
             take: 10,
         })
 
-        // Format the messages for the OpenAI API
-        // Had to use 'as const' here to make TypeScript happy with the role types
+        // Format the messages for the AI client
         const chatHistory = messages.map((msg: { role: string; content: string }) => ({
-            role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
+            role: msg.role as 'user' | 'assistant' | 'model',
             content: msg.content,
         }))
 
-        // Get the AI response using OpenRouter
-        // Using the free Llama model - works pretty well for most stuff
-        const completion = await openai.chat.completions.create({
-            model: DEFAULT_MODEL,
-            messages: chatHistory,
-        })
-
-        const aiMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.'
+        // Get the AI response using our robust client
+        // This will automatically try Gemini first, then fallback to OpenRouter if needed
+        const aiMessage = await getAIResponse(chatHistory)
 
         // Save the AI's response
         await prisma.message.create({

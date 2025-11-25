@@ -176,7 +176,8 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted,
             {/* Main sidebar container */}
             <div className={cn(
                 "w-64 border-r bg-muted/40 flex flex-col h-full transition-transform duration-300 ease-in-out",
-                "fixed md:relative z-50 bg-background md:bg-muted/40 inset-y-0 left-0", // Mobile positioning
+                // Fixed the positioning here so it actually stays on screen on mobile phones
+                "fixed md:relative z-50 bg-background md:bg-muted/40 inset-y-0 left-0",
                 isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0" // Slide in/out
             )}>
                 {/* Header with "New Chat" button */}

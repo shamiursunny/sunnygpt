@@ -64,6 +64,7 @@ export default function Home() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex-1">
               SunnyGPT
             </h1>
+            {/* Added this button so mobile users can easily start a fresh chat without digging in the menu */}
             <button
               onClick={handleNewChat}
               className="md:hidden p-2 -mr-2 rounded-md hover:bg-muted transition-colors text-primary"
