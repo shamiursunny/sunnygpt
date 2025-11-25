@@ -5,27 +5,79 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAIResponse } from '@/lib/ai-client'
+import { rateLimit, getRateLimitHeaders } from '@/lib/rate-limiter'
+import { logger } from '@/lib/logger'
+
+// Rate limit: 20 requests per minute per IP
+const RATE_LIMIT_CONFIG = {
+    maxRequests: 20,
+    windowMs: 60 * 1000 // 1 minute
+}
+
+function sanitizeInput(input: string): string {
+    // Remove any potentially harmful characters
+    return input.trim().substring(0, 10000) // Max 10k characters
+}
+
+function getClientIP(req: NextRequest): string {
+    return req.headers.get('x-forwarded-for')?.split(',')[0] ||
+        req.headers.get('x-real-ip') ||
+        'unknown'
+}
 
 export async function POST(req: NextRequest) {
-    try {
-        const { chatId, message, fileUrl } = await req.json()
+    const startTime = Date.now()
+    const clientIP = getClientIP(req)
 
-        // Make sure we actually got a message
-        if (!message) {
-            return NextResponse.json({ error: 'Message is required' }, { status: 400 })
+    try {
+        // Rate limiting
+        const rateLimitResult = rateLimit(clientIP, RATE_LIMIT_CONFIG)
+
+        if (!rateLimitResult.allowed) {
+            logger.warn('Rate limit exceeded', { ip: clientIP })
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                {
+                    status: 429,
+                    headers: getRateLimitHeaders(rateLimitResult)
+                }
+            )
         }
+
+        const body = await req.json()
+        const { chatId, message, fileUrl } = body
+
+        // Input validation
+        if (!message || typeof message !== 'string') {
+            return NextResponse.json({ error: 'Message is required and must be a string' }, { status: 400 })
+        }
+
+        if (message.length > 10000) {
+            return NextResponse.json({ error: 'Message too long (max 10,000 characters)' }, { status: 400 })
+        }
+
+        if (chatId && typeof chatId !== 'string') {
+            return NextResponse.json({ error: 'Invalid chatId format' }, { status: 400 })
+        }
+
+        if (fileUrl && typeof fileUrl !== 'string') {
+            return NextResponse.json({ error: 'Invalid fileUrl format' }, { status: 400 })
+        }
+
+        // Sanitize input
+        const sanitizedMessage = sanitizeInput(message)
 
         let currentChatId = chatId
 
         // If this is a new conversation, create a chat for it
-        // I'm using the first part of the message as the title
         if (!currentChatId) {
             const newChat = await prisma.chat.create({
                 data: {
-                    title: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
+                    title: sanitizedMessage.substring(0, 50) + (sanitizedMessage.length > 50 ? '...' : ''),
                 },
             })
             currentChatId = newChat.id
+            logger.info('New chat created', { chatId: currentChatId })
         }
 
         // Store the user's message in the database
@@ -33,13 +85,12 @@ export async function POST(req: NextRequest) {
             data: {
                 chatId: currentChatId,
                 role: 'user',
-                content: message,
+                content: sanitizedMessage,
                 fileUrl: fileUrl || null,
             },
         })
 
         // Grab the last 10 messages to give the AI some context
-        // Keeping it at 10 to avoid token limits
         const messages = await prisma.message.findMany({
             where: { chatId: currentChatId },
             orderBy: { createdAt: 'asc' },
@@ -52,8 +103,8 @@ export async function POST(req: NextRequest) {
             content: msg.content,
         }))
 
-        // Get the AI response using our robust client
-        // This will automatically try Gemini first, then fallback to OpenRouter if needed
+        // Get the AI response
+        logger.debug('Requesting AI response', { chatId: currentChatId, messageCount: chatHistory.length })
         const aiMessage = await getAIResponse(chatHistory)
 
         // Save the AI's response
@@ -65,15 +116,33 @@ export async function POST(req: NextRequest) {
             },
         })
 
+        const duration = Date.now() - startTime
+        logger.info('Chat request completed', { chatId: currentChatId, duration })
+
         // Send everything back to the client
-        return NextResponse.json({
-            chatId: currentChatId,
-            message: aiMessage,
-        })
-    } catch (error) {
-        console.error('Chat API error:', error)
         return NextResponse.json(
-            { error: 'Failed to process chat message' },
+            {
+                chatId: currentChatId,
+                message: aiMessage,
+            },
+            {
+                headers: getRateLimitHeaders(rateLimitResult)
+            }
+        )
+    } catch (error) {
+        const duration = Date.now() - startTime
+        logger.error('Chat API error', error as Error, { ip: clientIP, duration })
+
+        // Provide detailed error message
+        const errorMessage = error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred while processing your message'
+
+        return NextResponse.json(
+            {
+                error: errorMessage,
+                details: 'Please try again. If the problem persists, check your API configuration.'
+            },
             { status: 500 }
         )
     }

@@ -6,7 +6,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { MessageBubble } from './message-bubble'
-import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
+import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getVoiceRecognition, getVoiceSpeaker, isSpeechRecognitionSupported, isSpeechSynthesisSupported } from '@/lib/speech'
 
@@ -16,6 +16,8 @@ interface Message {
     content: string
     role: string
     fileUrl?: string | null
+    error?: boolean  // Track if this message failed
+    errorMessage?: string  // Store error details
 }
 
 // Component props interface
@@ -185,7 +187,20 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
                 }),
             })
 
+            // Check for server busy conditions
+            if (response.status === 429 || response.status === 503) {
+                throw new Error('Server is busy. Please try again in a few moments.')
+            }
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status} ${response.statusText}`)
+            }
+
             const data = await response.json()
+
+            if (data.error) {
+                throw new Error(data.error)
+            }
 
             if (data.chatId && !chatId) {
                 onChatCreated?.(data.chatId)
@@ -203,6 +218,27 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
             speakText(data.message)
         } catch (error) {
             console.error('Failed to send message:', error)
+
+            // Determine error message based on error type
+            let errorContent = 'Failed to get AI response'
+            let errorDetails = 'The AI failed to respond. Please try again.'
+
+            if (error instanceof Error) {
+                errorContent = error.message
+                if (error.message.includes('Server is busy')) {
+                    errorDetails = 'The server is currently busy. Please wait a moment and try again.'
+                }
+            }
+
+            // Add error message to chat
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                content: errorContent,
+                role: 'model',
+                error: true,
+                errorMessage: errorDetails,
+            }
+            setMessages((prev) => [...prev, errorMessage])
         } finally {
             setIsLoading(false)
         }
@@ -235,9 +271,30 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
 
     return (
         <div className="flex flex-col h-full">
-            {/* Header with voice mode toggle */}
+            {/* Header with status indicator and voice mode toggle */}
             <div className="border-b px-4 py-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                    {/* API Status Indicator */}
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <Circle
+                                className={cn(
+                                    "h-3 w-3 fill-current transition-colors",
+                                    isLoading ? "text-red-500" : "text-green-500"
+                                )}
+                            />
+                            {isLoading && (
+                                <Circle
+                                    className="absolute inset-0 h-3 w-3 text-red-500 animate-ping opacity-75"
+                                />
+                            )}
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">
+                            {isLoading ? 'Busy' : 'Ready'}
+                        </span>
+                    </div>
+
+                    {/* Speaking indicator */}
                     {isSpeaking && (
                         <div className="flex items-center gap-2 text-sm text-primary">
                             <Volume2 className="h-4 w-4 animate-pulse" />
