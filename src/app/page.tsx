@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { ChatInterface } from '@/components/chat-interface'
 import { Sidebar } from '@/components/sidebar'
 import { Footer } from '@/components/footer'
-import { Menu } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Home() {
@@ -61,9 +61,16 @@ export default function Home() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex-1">
               SunnyGPT
             </h1>
+            <button
+              onClick={handleNewChat}
+              className="md:hidden p-2 -mr-2 rounded-md hover:bg-muted transition-colors text-primary"
+              aria-label="New chat"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
           </header>
           <ChatInterface
             chatId={currentChatId}
