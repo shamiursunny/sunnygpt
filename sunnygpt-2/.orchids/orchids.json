@@ -1,0 +1,6 @@
+{
+  "startupCommands": [
+    "npm install; npm run dev",
+    "npm install; npm run build; npm run start"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "sunnygpt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "author": "Shamiur Rashid Sunny (https://shamiur.com)",
   "license": "UNLICENSED",
@@ -13,7 +13,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

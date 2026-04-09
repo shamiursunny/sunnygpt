@@ -1,21 +1,19 @@
-// AI Client - The brain of the operation
+// AI Client - adaptive provider and model routing with self-healing scans.
 // Built by Shamiur Rashid Sunny (shamiur.com)
-// This handles the smart logic: try Gemini first, if it trips, catch it with OpenRouter.
-// Now with health checks to automatically route to the active API!
 
-import { model } from './gemini'
-import { openai, DEFAULT_MODEL } from './openrouter'
+import { createGeminiModel, getAvailableGeminiModels } from './gemini'
+import { getAvailableOpenRouterFreeModels, openai } from './openrouter'
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'model'
     content: string
 }
 
-// Health status tracking
 interface APIHealth {
     healthy: boolean
     lastChecked: number
     lastError?: string
+    activeModel?: string
 }
 
 interface APIHealthStatus {
@@ -23,146 +21,278 @@ interface APIHealthStatus {
     openrouter: APIHealth
 }
 
-// Cache health status for 30 seconds
-const HEALTH_CHECK_CACHE_MS = 30000
+interface ModelListCache {
+    models: string[]
+    fetchedAt: number
+}
+
+const HEALTH_CHECK_CACHE_MS = 30_000
+const MODEL_LIST_CACHE_MS = 10 * 60_000
+const MODEL_FAILURE_COOLDOWN_MS = 5 * 60_000
+
 let healthStatus: APIHealthStatus = {
     gemini: { healthy: true, lastChecked: 0 },
     openrouter: { healthy: true, lastChecked: 0 }
 }
 
-/**
- * Checks if Gemini API is healthy with a lightweight test
- */
+let geminiModelListCache: ModelListCache = { models: [], fetchedAt: 0 }
+let openRouterModelListCache: ModelListCache = { models: [], fetchedAt: 0 }
+
+const modelPenaltyUntil = {
+    gemini: new Map<string, number>(),
+    openrouter: new Map<string, number>()
+}
+
+function isModelPenalized(provider: 'gemini' | 'openrouter', modelName: string): boolean {
+    const penaltyUntil = modelPenaltyUntil[provider].get(modelName) || 0
+    return penaltyUntil > Date.now()
+}
+
+function markModelUnhealthy(provider: 'gemini' | 'openrouter', modelName: string, error?: unknown): void {
+    modelPenaltyUntil[provider].set(modelName, Date.now() + MODEL_FAILURE_COOLDOWN_MS)
+    healthStatus[provider].healthy = false
+    healthStatus[provider].lastChecked = Date.now()
+    healthStatus[provider].lastError = error instanceof Error ? error.message : 'Unknown model failure'
+    if (healthStatus[provider].activeModel === modelName) {
+        healthStatus[provider].activeModel = undefined
+    }
+}
+
+function getCachedModelList(cache: ModelListCache): string[] | null {
+    if (Date.now() - cache.fetchedAt < MODEL_LIST_CACHE_MS && cache.models.length > 0) {
+        return cache.models
+    }
+    return null
+}
+
+function prioritizeHealthyModels(provider: 'gemini' | 'openrouter', models: string[]): string[] {
+    const deduped = Array.from(new Set(models))
+    const healthyFirst = deduped.filter((modelName) => !isModelPenalized(provider, modelName))
+    const penalized = deduped.filter((modelName) => isModelPenalized(provider, modelName))
+    return [...healthyFirst, ...penalized]
+}
+
+async function getGeminiModelCandidates(forceRefresh = false): Promise<string[]> {
+    if (!forceRefresh) {
+        const cached = getCachedModelList(geminiModelListCache)
+        if (cached) return prioritizeHealthyModels('gemini', cached)
+    }
+
+    const models = await getAvailableGeminiModels()
+    geminiModelListCache = {
+        models,
+        fetchedAt: Date.now()
+    }
+    return prioritizeHealthyModels('gemini', models)
+}
+
+async function getOpenRouterModelCandidates(forceRefresh = false): Promise<string[]> {
+    if (!forceRefresh) {
+        const cached = getCachedModelList(openRouterModelListCache)
+        if (cached) return prioritizeHealthyModels('openrouter', cached)
+    }
+
+    const models = await getAvailableOpenRouterFreeModels()
+    openRouterModelListCache = {
+        models,
+        fetchedAt: Date.now()
+    }
+    return prioritizeHealthyModels('openrouter', models)
+}
+
+async function probeGeminiModel(modelName: string): Promise<boolean> {
+    try {
+        const model = createGeminiModel(modelName)
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
+            generationConfig: { maxOutputTokens: 8 }
+        })
+        return Boolean(result.response.text())
+    } catch (error) {
+        console.warn(`Gemini model probe failed (${modelName}):`, error)
+        markModelUnhealthy('gemini', modelName, error)
+        return false
+    }
+}
+
+async function probeOpenRouterModel(modelName: string): Promise<boolean> {
+    try {
+        const completion = await openai.chat.completions.create({
+            model: modelName,
+            messages: [{ role: 'user', content: 'ping' }],
+            max_tokens: 8
+        })
+        return Boolean(completion.choices[0]?.message?.content)
+    } catch (error) {
+        console.warn(`OpenRouter model probe failed (${modelName}):`, error)
+        markModelUnhealthy('openrouter', modelName, error)
+        return false
+    }
+}
+
+async function selectHealthyGeminiModel(forceRefresh = false): Promise<string> {
+    const candidates = await getGeminiModelCandidates(forceRefresh)
+
+    for (const modelName of candidates) {
+        if (await probeGeminiModel(modelName)) {
+            healthStatus.gemini = {
+                healthy: true,
+                lastChecked: Date.now(),
+                activeModel: modelName
+            }
+            return modelName
+        }
+    }
+
+    if (!forceRefresh) {
+        return selectHealthyGeminiModel(true)
+    }
+
+    healthStatus.gemini = {
+        healthy: false,
+        lastChecked: Date.now(),
+        lastError: 'No healthy Gemini model found'
+    }
+    throw new Error('No healthy Gemini model found')
+}
+
+async function selectHealthyOpenRouterModel(forceRefresh = false): Promise<string> {
+    const candidates = await getOpenRouterModelCandidates(forceRefresh)
+
+    for (const modelName of candidates) {
+        if (await probeOpenRouterModel(modelName)) {
+            healthStatus.openrouter = {
+                healthy: true,
+                lastChecked: Date.now(),
+                activeModel: modelName
+            }
+            return modelName
+        }
+    }
+
+    if (!forceRefresh) {
+        return selectHealthyOpenRouterModel(true)
+    }
+
+    healthStatus.openrouter = {
+        healthy: false,
+        lastChecked: Date.now(),
+        lastError: 'No healthy OpenRouter free model found'
+    }
+    throw new Error('No healthy OpenRouter free model found')
+}
+
 async function checkGeminiHealth(): Promise<boolean> {
     try {
-        const testChat = model.startChat({
-            generationConfig: { maxOutputTokens: 10 }
-        })
-        await testChat.sendMessage('Hi')
+        await selectHealthyGeminiModel()
         return true
-    } catch (error) {
-        console.warn('Gemini health check failed:', error)
+    } catch {
         return false
     }
 }
 
-/**
- * Checks if OpenRouter API is healthy with a lightweight test
- */
 async function checkOpenRouterHealth(): Promise<boolean> {
     try {
-        await openai.chat.completions.create({
-            model: DEFAULT_MODEL,
-            messages: [{ role: 'user', content: 'Hi' }],
-            max_tokens: 10
-        })
+        await selectHealthyOpenRouterModel()
         return true
-    } catch (error) {
-        console.warn('OpenRouter health check failed:', error)
+    } catch {
         return false
     }
 }
 
-/**
- * Gets cached health status or performs new check if cache expired
- */
 async function getAPIHealth(api: 'gemini' | 'openrouter'): Promise<boolean> {
     const now = Date.now()
     const status = healthStatus[api]
 
-    // Return cached status if still fresh
     if (now - status.lastChecked < HEALTH_CHECK_CACHE_MS) {
         return status.healthy
     }
 
-    // Perform new health check
     const isHealthy = api === 'gemini'
         ? await checkGeminiHealth()
         : await checkOpenRouterHealth()
 
-    // Update cache
-    healthStatus[api] = {
-        healthy: isHealthy,
-        lastChecked: now,
-        lastError: isHealthy ? undefined : 'Health check failed'
+    if (!isHealthy && !healthStatus[api].lastError) {
+        healthStatus[api].lastError = 'Health check failed'
     }
 
-    console.log(`${api} API health: ${isHealthy ? 'HEALTHY' : 'UNHEALTHY'}`)
     return isHealthy
 }
 
-/**
- * Gets a response from the AI, intelligently routing to healthy APIs
- * @param messages The chat history including the current message
- * @returns The AI's response text
- */
+export async function getAIProviderStatus(): Promise<{
+    gemini: APIHealth
+    openrouter: APIHealth
+}> {
+    await Promise.all([
+        getAPIHealth('gemini'),
+        getAPIHealth('openrouter')
+    ])
+
+    return {
+        gemini: { ...healthStatus.gemini },
+        openrouter: { ...healthStatus.openrouter }
+    }
+}
+
 export async function getAIResponse(messages: ChatMessage[]): Promise<string> {
-    // Check health of both APIs
     const geminiHealthy = await getAPIHealth('gemini')
     const openRouterHealthy = await getAPIHealth('openrouter')
 
-    // If both are healthy, prefer Gemini (default)
     if (geminiHealthy) {
         try {
-            console.log('Using Gemini API (healthy)')
-            return await getGeminiResponse(messages)
+            const modelName = healthStatus.gemini.activeModel || await selectHealthyGeminiModel()
+            console.log(`Using Gemini API model: ${modelName}`)
+            return await getGeminiResponse(messages, modelName)
         } catch (error) {
-            console.warn('Gemini failed despite health check, trying OpenRouter...', error)
-            // Mark as unhealthy for next time
-            healthStatus.gemini.healthy = false
-            healthStatus.gemini.lastChecked = Date.now()
-
+            const activeModel = healthStatus.gemini.activeModel
+            if (activeModel) {
+                markModelUnhealthy('gemini', activeModel, error)
+            }
             if (openRouterHealthy) {
-                return await getOpenRouterResponse(messages)
+                const fallbackModel = healthStatus.openrouter.activeModel || await selectHealthyOpenRouterModel()
+                return await getOpenRouterResponse(messages, fallbackModel)
             }
             throw error
         }
     }
 
-    // If Gemini unhealthy but OpenRouter healthy, use OpenRouter
     if (openRouterHealthy) {
         try {
-            console.log('Using OpenRouter API (Gemini unhealthy)')
-            return await getOpenRouterResponse(messages)
+            const modelName = healthStatus.openrouter.activeModel || await selectHealthyOpenRouterModel()
+            console.log(`Using OpenRouter API model: ${modelName}`)
+            return await getOpenRouterResponse(messages, modelName)
         } catch (error) {
-            console.error('OpenRouter failed:', error)
-            // Mark as unhealthy
-            healthStatus.openrouter.healthy = false
-            healthStatus.openrouter.lastChecked = Date.now()
+            const activeModel = healthStatus.openrouter.activeModel
+            if (activeModel) {
+                markModelUnhealthy('openrouter', activeModel, error)
+            }
             throw error
         }
     }
 
-    // Both unhealthy - try anyway with original fallback logic
-    console.warn('Both APIs marked unhealthy, attempting anyway...')
     try {
-        return await getGeminiResponse(messages)
+        const modelName = await selectHealthyGeminiModel(true)
+        return await getGeminiResponse(messages, modelName)
     } catch (geminiError) {
-        console.warn('Gemini failed, trying OpenRouter as last resort...', geminiError)
-        try {
-            return await getOpenRouterResponse(messages)
-        } catch (openRouterError) {
-            console.error('All AI providers failed:', openRouterError)
-            throw new Error('Failed to generate response from any AI provider')
-        }
+        console.warn('Gemini recovery failed, trying OpenRouter as final fallback...', geminiError)
+        const modelName = await selectHealthyOpenRouterModel(true)
+        return await getOpenRouterResponse(messages, modelName)
     }
 }
 
-async function getGeminiResponse(messages: ChatMessage[]): Promise<string> {
-    // Separate history from the latest message
-    const history = messages.slice(0, -1).map(msg => ({
+async function getGeminiResponse(messages: ChatMessage[], modelName: string): Promise<string> {
+    const history = messages.slice(0, -1).map((msg) => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.content }]
     }))
 
     const lastMessage = messages[messages.length - 1]
-
-    // Start chat with history
+    const model = createGeminiModel(modelName)
     const chat = model.startChat({
-        history: history,
+        history,
         generationConfig: {
-            maxOutputTokens: 2048,
-        },
+            maxOutputTokens: 2048
+        }
     })
 
     const result = await chat.sendMessage(lastMessage.content)
@@ -170,16 +300,15 @@ async function getGeminiResponse(messages: ChatMessage[]): Promise<string> {
     return response.text()
 }
 
-async function getOpenRouterResponse(messages: ChatMessage[]): Promise<string> {
-    // Format messages for OpenAI/OpenRouter
-    const formattedMessages = messages.map(msg => ({
+async function getOpenRouterResponse(messages: ChatMessage[], modelName: string): Promise<string> {
+    const formattedMessages = messages.map((msg) => ({
         role: (msg.role === 'model' ? 'assistant' : msg.role) as 'user' | 'assistant' | 'system',
         content: msg.content
     }))
 
     const completion = await openai.chat.completions.create({
-        model: DEFAULT_MODEL,
-        messages: formattedMessages,
+        model: modelName,
+        messages: formattedMessages
     })
 
     return completion.choices[0]?.message?.content || ''
