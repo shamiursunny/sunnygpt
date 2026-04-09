@@ -1,0 +1,48 @@
+{
+  "name": "sunnygpt",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Shamiur Rashid Sunny (https://shamiur.com)",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "20.x",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^7.0.0",
+    "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.83.0",
+    "@types/pg": "^8.15.6",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
+    "next": "^14.2.16",
+    "openai": "^6.9.1",
+    "pg": "^8.16.3",
+    "prisma": "^5.22.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.16",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,32 @@
+// Database schema for SunnyGPT
+// Built by Shamiur Rashid Sunny (shamiur.com)
+// Using PostgreSQL via Neon for the database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Chat conversations
+model Chat {
+  id        String    @id @default(cuid())
+  title     String
+  createdAt DateTime  @default(now())
+  messages  Message[]
+}
+
+// Individual messages in chats
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  role      String   // 'user' or 'model'
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  fileUrl   String?  // Optional file attachment
+  fileType  String?  // MIME type of the file
+}
