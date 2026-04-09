@@ -1,0 +1,14 @@
+Site: https://shamiur.com/contact
+Action: Contact form submission
+Status: Submitted and verified by post-submit field reset
+Name: Demo User
+Email: demo@example.com
+Message: Hi, this is a demo message. I am interested in discussing a potential collaboration on a web development and DevSecOps project. Please feel free to reach out at your convenience. Thank you!
+Verification:
+- Clicked Send button
+- Waited for submission processing
+- Checked field values with bud-browser get value
+- Name field value = ""
+- Email field value = ""
+- Message field value = ""
+Timestamp (local): $(date '+%Y-%m-%d %H:%M:%S %Z')
