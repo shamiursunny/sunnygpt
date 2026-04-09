@@ -1,0 +1,6 @@
+{
+  "startupCommands": [
+    "cd /home/user/app/shamiur-contact/repo && npm ci; npm run dev",
+    "cd /home/user/app/shamiur-contact/repo && npm ci; npm run dev"
+  ]
+}

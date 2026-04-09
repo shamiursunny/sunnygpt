@@ -1,0 +1,23 @@
+SunnyGPT Evidence Log
+Collected: 2026-04-09 17:07:44 UTC
+
+1) Live UI symptom
+- Opened https://sunnygpt.shamiur.com
+- Sent message: "hello"
+- Observed in page text: "API error: 500"
+
+2) Live backend response
+- Request: POST https://sunnygpt.shamiur.com/api/chat with {"message":"hello"}
+- Response status: 500
+- Response JSON: {"error":"Failed to generate response from any AI provider","details":"Please try again. If the problem persists, check your API configuration."}
+
+3) Live health endpoint behavior
+- Request: GET https://sunnygpt.shamiur.com/api/health
+- Response headers include: x-vercel-cache: PRERENDER
+- Response timestamp value observed: 2025-11-25T06:03:54.382Z (stale compared to current date)
+
+4) Source evidence
+- src/lib/gemini.ts uses model IDs: gemini-pro, gemini-pro-vision
+- src/components/chat-interface.tsx throws API error on non-200 before parsing backend JSON
+- start.ps1 includes plaintext secrets (DATABASE_URL and API keys)
+- src/lib/ai-client.ts throws "Failed to generate response from any AI provider"
