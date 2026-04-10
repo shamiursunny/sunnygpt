@@ -305,7 +305,7 @@ export class AIPool {
 
       // CALL: Create completion
       const completion = await openai.chat.completions.create({
-        model: 'openrouter/free', // Auto-select best free model
+        model: 'google/gemini-2.0-flash-exp:free', // Specific free model on OpenRouter
         messages: formattedMessages,
         max_tokens: 2048
       })
