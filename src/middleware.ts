@@ -15,13 +15,21 @@
  * =============================================================================
  */
 
-import { auth } from "@/auth"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
-  const userRole = (req.auth?.user as any)?.role
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  
+  // Get token from session
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.AUTH_SECRET 
+  })
+  
+  const isLoggedIn = !!token
+  const userRole = token?.role as string | undefined
   const isAdmin = userRole === "admin"
 
   // ==========================================================================
@@ -42,7 +50,7 @@ export default auth((req) => {
   if (pathname === "/login" || pathname === "/register" || pathname === "/") {
     // If logged in, redirect to portal
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/portal/chat", req.url))
+      return NextResponse.redirect(new URL("/portal/chat", request.url))
     }
     return NextResponse.next()
   }
@@ -64,7 +72,7 @@ export default auth((req) => {
   // Portal routes (user dashboard) - require authentication
   if (pathname.startsWith("/portal")) {
     if (!isLoggedIn) {
-      const loginUrl = new URL("/login", req.url)
+      const loginUrl = new URL("/login", request.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -74,14 +82,14 @@ export default auth((req) => {
   // Admin routes - require admin role
   if (pathname.startsWith("/admin")) {
     if (!isLoggedIn) {
-      const loginUrl = new URL("/login", req.url)
+      const loginUrl = new URL("/login", request.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
     
     if (!isAdmin) {
       // Not admin - redirect to portal
-      return NextResponse.redirect(new URL("/portal/chat", req.url))
+      return NextResponse.redirect(new URL("/portal/chat", request.url))
     }
     return NextResponse.next()
   }
@@ -124,7 +132,7 @@ export default auth((req) => {
   // ==========================================================================
   
   return NextResponse.next()
-})
+}
 
 // Configure which routes the middleware runs on
 export const config = {

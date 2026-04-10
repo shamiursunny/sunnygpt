@@ -14,11 +14,11 @@
  * =============================================================================
  */
 
-import { handlers } from "@/auth"
+import { GET, POST } from "@/auth"
 
 // Export all NextAuth handlers
 // This creates:
 // - GET /api/auth (list providers)
 // - POST /api/auth (sign in, sign out, etc.)
 // - GET /api/auth/session (get session)
-export const { GET, POST } = handlers
+export { GET, POST }

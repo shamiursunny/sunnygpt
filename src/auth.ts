@@ -29,7 +29,7 @@
  * =============================================================================
  */
 
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import bcrypt from "bcryptjs"
 
@@ -52,7 +52,7 @@ import { sendWelcomeEmail, sendAdminNewUserNotification } from "@/lib/email-serv
  * - Facebook OAuth (requires FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET)
  * - Email/Password (optional, uses bcrypt for hashing)
  */
-export const config: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   // Use Prisma adapter for database storage
   adapter: PrismaAdapter(prisma),
   
@@ -235,8 +235,14 @@ export const config: NextAuthConfig = {
 // EXPORT AUTH HANDLERS
 // ============================================================================
 
-// Create the auth handler
-export const { handlers, auth, signIn, signOut } = NextAuth(config)
+// Create the auth handler using NextAuth v4 pattern
+const nextAuthHandler = NextAuth(authOptions)
+
+// Export handlers for API routes - GET and POST for all auth endpoints
+export const { GET, POST } = nextAuthHandler
+
+// Export auth, signIn, signOut for use in other parts of the app
+export const { auth, signIn, signOut } = nextAuthHandler
 
 // ============================================================================
 // HELPER FUNCTIONS
