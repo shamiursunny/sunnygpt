@@ -31,7 +31,6 @@
 
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import type { NextAuthConfig } from "next-auth"
 import bcrypt from "bcryptjs"
 
 // Import Prisma client
@@ -149,11 +148,11 @@ export const config: NextAuthConfig = {
   // Callbacks for custom logic
   callbacks: {
     // Add user ID and role to JWT token
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session }: { token: any; user: any; trigger?: string; session?: any }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role || "user"
-        token.organizationId = (user as any).organizationId
+        token.role = user.role || "user"
+        token.organizationId = user.organizationId
       }
       
       // Handle session update (e.g., after settings change)
@@ -165,19 +164,19 @@ export const config: NextAuthConfig = {
     },
     
     // Add user info to session
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
-        session.user.organizationId = token.organizationId as string | null
+    async session({ session, token }: { session: any; token: any }) {
+      if (session.user && token) {
+        session.user.id = token.id
+        session.user.role = token.role || "user"
+        session.user.organizationId = token.organizationId
       }
       return session
     },
     
     // Handle sign-in - create or update user
-    async signIn({ user, account, profile }) {
+    async signIn(params: any) {
       // Allow sign in for all OAuth providers
-      if (account?.provider !== "credentials") {
+      if (params.account?.provider !== "credentials") {
         return true
       }
       
@@ -188,7 +187,8 @@ export const config: NextAuthConfig = {
   
   // Events for logging and notifications
   events: {
-    async createUser({ user }) {
+    async createUser(params: any) {
+      const user = params.user
       console.log("[Auth] New user created:", user.email)
       
       // Send welcome email to new user
@@ -201,7 +201,9 @@ export const config: NextAuthConfig = {
         }
       }
     },
-    async signIn({ user, account, profile }) {
+    async signIn(params: any) {
+      const user = params.user
+      const account = params.account
       console.log("[Auth] User signed in:", user.email, "via", account?.provider)
       
       // Check if this is a new user signing in for the first time
@@ -220,8 +222,8 @@ export const config: NextAuthConfig = {
         }
       }
     },
-    async signOut({ token }) {
-      console.log("[Auth] User signed out:", token.id)
+    async signOut() {
+      console.log("[Auth] User signed out")
     },
   },
   
@@ -305,14 +307,6 @@ declare module "next-auth" {
   
   interface User {
     role?: string
-    organizationId?: string | null
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string
-    role: string
     organizationId?: string | null
   }
 }

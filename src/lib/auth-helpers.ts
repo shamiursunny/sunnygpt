@@ -75,8 +75,9 @@ export async function requireAdmin() {
 /**
  * Build where clause for multi-tenant queries
  * Returns Prisma where clause with organizationId and/or userId
+ * Note: context should be the resolved value, not a Promise
  */
-export function buildOwnershipFilter(context: ReturnType<typeof getUserContext>) {
+export function buildOwnershipFilter(context: { userId: string; organizationId: string | null; role: string; isAdmin: boolean } | null) {
   if (!context) return {}
   
   const filter: any = {}
@@ -95,8 +96,9 @@ export function buildOwnershipFilter(context: ReturnType<typeof getUserContext>)
 /**
  * Build where clause that includes public data + user data
  * For routes that might show public content alongside private
+ * Note: context should be the resolved value, not a Promise
  */
-export function buildSharedFilter(context: ReturnType<typeof getUserContext>) {
+export function buildSharedFilter(context: { userId: string; organizationId: string | null; role: string; isAdmin: boolean } | null) {
   if (!context) {
     // No auth - only return public data (organizationId: null)
     return { OR: [{ organizationId: null }, { userId: null }] }

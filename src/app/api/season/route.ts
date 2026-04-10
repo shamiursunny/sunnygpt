@@ -1,16 +1,23 @@
-// Season API - SunnyGPT Prime Edition
+// Season API - SunnyGPT Prime Edition - SaaS Edition
 // Built by Shamiur Rashid Sunny (shamiur.com)
 // Tier 2 seasonal storage operations
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { archiveSeasonToGitHub, getActiveSeasons, getMemoryStats } from '@/lib/memory-manager'
+import { getUserContext } from '@/lib/auth-helpers'
 
 // Create new season
 export async function POST(req: NextRequest) {
     try {
+        // AUTH CHECK
+        const userContext = await getUserContext()
+        if (!userContext) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const body = await req.json()
-        const { title, description, owner } = body
+        const { title, description } = body
 
         if (!title) {
             return NextResponse.json(
@@ -19,11 +26,14 @@ export async function POST(req: NextRequest) {
             )
         }
 
+        const { userId, organizationId } = userContext
+
         const season = await prisma.season.create({
             data: {
                 title,
                 description,
-                owner,
+                userId: userId,
+                organizationId: organizationId || null,
                 status: 'active'
             }
         })
