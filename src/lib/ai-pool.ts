@@ -305,7 +305,7 @@ export class AIPool {
 
       // CALL: Create completion
       const completion = await openai.chat.completions.create({
-        model: 'google/gemini-2.0-flash-exp:free', // Specific free model on OpenRouter
+        model: 'openai/gpt-4o-mini', // Free tier model with 1M input tokens/month
         messages: formattedMessages,
         max_tokens: 2048
       })
