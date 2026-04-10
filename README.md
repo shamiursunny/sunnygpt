@@ -1,11 +1,11 @@
-# SunnyGPT - ChatGPT Clone
+# SunnyGPT - Simplex GPT Platform
 
 > **© 2025 Shamiur Rashid Sunny - All Rights Reserved**  
 > **Website**: [shamiur.com](https://shamiur.com)  
 > **License**: Proprietary - NOT Open Source  
 > ⚠️ **Usage of this software requires explicit written permission from the author.**
 
-A modern ChatGPT clone built with Next.js, AI (OpenRouter/Gemini), Neon DB, and Supabase.
+A modern simplex GPT platform built with Next.js, AI (OpenRouter/Gemini), Neon DB, and Supabase.
 
 ---
 
