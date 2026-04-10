@@ -1,6 +1,7 @@
-// Database schema for SunnyGPT
+// Database schema for SunnyGPT Prime Edition
 // Built by Shamiur Rashid Sunny (shamiur.com)
-// Using PostgreSQL via Neon for the database
+// 3-Tier Memory System: Neon (7d) → Supabase (30d) → GitHub (Forever)
+// Multi-Resource Pool System with live monitoring
 
 generator client {
   provider = "prisma-client-js"
@@ -11,11 +12,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================
+// CORE MODELS (Original)
+// ============================================
+
 // Chat conversations
 model Chat {
   id        String    @id @default(cuid())
   title     String
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  seasonId  String?   // Link to season
+  season    Season?   @relation(fields: [seasonId], references: [id])
   messages  Message[]
 }
 
@@ -29,4 +37,110 @@ model Message {
   createdAt DateTime @default(now())
   fileUrl   String?  // Optional file attachment
   fileType  String?  // MIME type of the file
+}
+
+// ============================================
+// TIER 1: WORKING MEMORY (Neon - 7 days)
+// ============================================
+
+// AI Memory - extracted facts/summaries for extended context
+model AIMemory {
+  id          String   @id @default(cuid())
+  sessionId   String   // Links to chat/season
+  content     String   // Summary or key facts
+  memoryType  String   // 'summary' | 'entity' | 'fact' | 'preference'
+  priority    Int      @default(1) // Higher = more important
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime // 7 days from creation (auto-cleanup)
+  metadata    Json?    // Extra metadata (chat context, etc.)
+  
+  @@index([sessionId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// TIER 2: SEASONAL MEMORY (Supabase - 30 days)
+// ============================================
+
+// Season - tracks chat seasons for archive
+model Season {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  status         String    @default("active") // 'active' | 'archived' | 'archived_to_github'
+  githubIssueId  String?   // GitHub Issue ID after archive
+  owner          String?   // User/owner ID (optional for multi-user)
+  messageCount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  chats          Chat[]
+  
+  @@index([status])
+  @@index([owner])
+}
+
+// ============================================
+// TIER 3: DYNAMIC RESOURCES (Runtime managed)
+// ============================================
+
+// Resource - dynamic resource pool (Level 3 config)
+model Resource {
+  id          String   @id @default(cuid())
+  type        String   // 'ai' | 'database' | 'storage'
+  provider    String   // 'openrouter' | 'gemini' | 'neon' | 'supabase' | 'github'
+  name        String   // e.g., 'openrouter-1', 'neon-1'
+  config      Json     // API keys, URLs, etc. (encrypted in production)
+  used        Int      @default(0) // Tokens used / queries made
+  limit       Int      @default(100000) // Limit before auto-disable
+  level       Int      @default(3) // 1=json, 2=env, 3=db (priority)
+  active      Boolean  @default(true)
+  priority    Int      @default(1) // Higher = preferred
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type, provider])
+  @@index([active])
+}
+
+// ============================================
+// MONITORING: SERVICE LOGS
+// ============================================
+
+// Service Log - all service activity for monitoring
+model ServiceLog {
+  id          String   @id @default(cuid())
+  timestamp   DateTime @default(now())
+  service     String   // e.g., 'openrouter-1', 'neon-1'
+  provider    String   // 'openrouter' | 'gemini' | 'neon' | 'supabase' | 'github' | 'vercel'
+  action      String   // 'request' | 'query' | 'upload' | 'api_call' | 'deploy'
+  inputSize   Int?     // Request size in bytes
+  outputSize  Int?     // Response size in bytes
+  latencyMs   Int      // Total latency
+  status      String   // 'success' | 'error' | 'rate_limit' | 'timeout'
+  errorMessage String?
+  metadata    Json?    // Extra data (tokens used, etc.)
+  
+  @@index([provider, service])
+  @@index([timestamp])
+  @@index([status])
+}
+
+// ============================================
+// OPTIONAL: USER/SESSION TRACKING
+// ============================================
+
+// User session tracking (for multi-user support)
+model Session {
+  id          String   @id @default(cuid())
+  userId      String?  // Optional user ID
+  sessionKey  String   @unique // Anonymous session key
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  lastActive  DateTime @default(now())
+  metadata    Json?
+  
+  @@index([userId])
 }

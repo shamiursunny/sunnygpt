@@ -1,0 +1,85 @@
+{
+  "version": "1.0",
+  "updatedAt": "2025-04-10T00:00:00Z",
+  "description": "SunnyGPT Prime Edition - Resource Configuration Template",
+  "note": "IMPORTANT: Do not commit real API keys. Use environment variables for secrets. This file contains placeholder keys for demonstration only.",
+  "aiProviders": {
+    "openrouter": {
+      "enabled": true,
+      "rotation": "sequential",
+      "autoRotate": true,
+      "accounts": [
+        {
+          "key": "sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "name": "openrouter-1",
+          "limit": 100000,
+          "used": 0,
+          "active": true
+        }
+      ]
+    },
+    "gemini": {
+      "enabled": true,
+      "rotation": "sequential",
+      "autoRotate": true,
+      "accounts": [
+        {
+          "key": "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "name": "gemini-1",
+          "limit": 100000,
+          "used": 0,
+          "active": true
+        }
+      ]
+    }
+  },
+  "databases": {
+    "neon": {
+      "enabled": true,
+      "accounts": [
+        {
+          "url": "postgresql://user:password@host.neon.tech/db?sslmode=require",
+          "name": "neon-1",
+          "active": true
+        }
+      ]
+    },
+    "supabase": {
+      "enabled": true,
+      "accounts": [
+        {
+          "url": "https://xxxxx.supabase.co",
+          "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxxx",
+          "serviceKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxxx",
+          "name": "supabase-1",
+          "active": true
+        }
+      ]
+    }
+  },
+  "storage": {
+    "github": {
+      "enabled": true,
+      "archiveRepo": "sunnygpt-archives",
+      "accounts": [
+        {
+          "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "name": "github-1",
+          "active": true
+        }
+      ]
+    }
+  },
+  "vercel": {
+    "enabled": true,
+    "token": "vcp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "settings": {
+    "defaultAIProvider": "openrouter",
+    "rotationStrategy": "sequential",
+    "memoryTier1Days": 7,
+    "memoryTier2Days": 30,
+    "healthCheckInterval": 300,
+    "autoFailover": true
+  }
+}

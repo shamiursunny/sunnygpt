@@ -1,12 +1,27 @@
 // File upload handler - sends files to Supabase Storage
 // Built by Shamiur Rashid Sunny (shamiur.com)
-// This handles image and document uploads for the chat
+// Handles image and document uploads with graceful error handling
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
     try {
+        // Check if Supabase is configured
+        if (!isSupabaseConfigured) {
+            return NextResponse.json({ 
+                error: 'Storage not configured. Please set up Supabase in your environment variables.' 
+            }, { status: 400 })
+        }
+
+        const supabase = createServerSupabaseClient()
+        
+        if (!supabase) {
+            return NextResponse.json({ 
+                error: 'Storage unavailable. Please check your Supabase configuration.' 
+            }, { status: 500 })
+        }
+        
         const formData = await req.formData()
         const file = formData.get('file') as File
 

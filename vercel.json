@@ -33,5 +33,15 @@
     ],
     "env": {
         "NODE_ENV": "production"
-    }
+    },
+    "crons": [
+        {
+            "path": "/api/cron/cleanup",
+            "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/cron/archive",
+            "schedule": "0 0 1 * *"
+        }
+    ]
 }

@@ -1,12 +1,13 @@
 // Main chat interface - where all the magic happens
 // Built by Shamiur Rashid Sunny (shamiur.com)
 // Handles messaging, file uploads, voice stuff, and the whole chat UI
+// Includes local AI fallback for offline support
 
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { MessageBubble } from './message-bubble'
-import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX, Circle } from 'lucide-react'
+import { Send, Paperclip, Loader2, Mic, MicOff, Volume2, VolumeX, Circle, Wifi, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getVoiceRecognition, getVoiceSpeaker, isSpeechRecognitionSupported, isSpeechSynthesisSupported } from '@/lib/speech'
 
@@ -35,6 +36,7 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
     const [voiceModeEnabled, setVoiceModeEnabled] = useState(false)
     const [isSpeaking, setIsSpeaking] = useState(false)
     const [mounted, setMounted] = useState(false)
+    const [isOfflineMode, setIsOfflineMode] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const voiceRecognitionRef = useRef<any>(null)
@@ -225,8 +227,18 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
 
             if (error instanceof Error) {
                 errorContent = error.message
-                if (error.message.includes('Server is busy')) {
+                
+                // Handle specific error cases
+                if (error.message.includes('Failed to fetch') || error.message.includes('network') || error.message.includes('fetch')) {
+                    errorContent = 'Unable to connect to server'
+                    errorDetails = 'Please check your internet connection and try again.'
+                } else if (error.message.includes('Server is busy')) {
                     errorDetails = 'The server is currently busy. Please wait a moment and try again.'
+                } else if (error.message.includes('AI unavailable') || error.message.includes('Local AI')) {
+                    errorContent = 'Using offline mode'
+                    errorDetails = 'Connected to local AI. Your data stays on your device.'
+                    // Switch to offline mode indicator
+                    setIsOfflineMode(true)
                 }
             }
 
@@ -290,9 +302,17 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
                             )}
                         </div>
                         <span className="text-xs font-medium text-muted-foreground">
-                            {isLoading ? 'Busy' : 'Ready'}
+                            {isLoading ? 'Busy' : isOfflineMode ? 'Offline Mode' : 'Ready'}
                         </span>
                     </div>
+
+                    {/* Offline mode indicator */}
+                    {isOfflineMode && (
+                        <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                            <WifiOff className="h-3 w-3" />
+                            <span>Local AI</span>
+                        </div>
+                    )}
 
                     {/* Speaking indicator */}
                     {isSpeaking && (
@@ -426,5 +446,5 @@ export function ChatInterface({ chatId, onChatCreated }: ChatInterfaceProps) {
                 </form>
             </div>
         </div>
-    )
+    );
 }
