@@ -37,8 +37,11 @@ import bcrypt from "bcryptjs"
 // Import Prisma client
 import { prisma } from "@/lib/prisma"
 
+// Import email service
+import { sendWelcomeEmail, sendAdminNewUserNotification } from "@/lib/email-service"
+
 // ============================================================================
-// AUTH CONFIGURATION
+// CONFIGURATION
 // ============================================================================
 
 /**
@@ -183,13 +186,39 @@ export const config: NextAuthConfig = {
     },
   },
   
-  // Events for logging
+  // Events for logging and notifications
   events: {
     async createUser({ user }) {
       console.log("[Auth] New user created:", user.email)
+      
+      // Send welcome email to new user
+      if (user.email) {
+        try {
+          await sendWelcomeEmail(user.email, user.name || "User")
+          console.log("[Auth] Welcome email sent to:", user.email)
+        } catch (error) {
+          console.error("[Auth] Failed to send welcome email:", error)
+        }
+      }
     },
     async signIn({ user, account, profile }) {
       console.log("[Auth] User signed in:", user.email, "via", account?.provider)
+      
+      // Check if this is a new user signing in for the first time
+      // Send notification to admin about new sign-in
+      const adminEmail = "shamiur.sunny@gmail.com"
+      if (user.email && user.email !== adminEmail) {
+        try {
+          await sendAdminNewUserNotification(
+            adminEmail,
+            user.name || "New User",
+            user.email
+          )
+          console.log("[Auth] Admin notification sent for:", user.email)
+        } catch (error) {
+          console.error("[Auth] Failed to send admin notification:", error)
+        }
+      }
     },
     async signOut({ token }) {
       console.log("[Auth] User signed out:", token.id)
