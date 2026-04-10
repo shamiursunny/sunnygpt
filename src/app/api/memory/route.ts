@@ -48,14 +48,16 @@ export async function GET(req: NextRequest) {
         const summary = searchParams.get('summary') === 'true'
         const stats = searchParams.get('stats') === 'true'
 
+        // Return stats without requiring sessionId
         if (stats) {
             const memoryStats = await getMemoryStats()
             return NextResponse.json(memoryStats)
         }
 
+        // For session-specific requests, sessionId is required
         if (!sessionId) {
             return NextResponse.json(
-                { error: 'sessionId is required' },
+                { error: 'sessionId is required for memory retrieval', hint: 'Use ?stats=true to get overall memory statistics' },
                 { status: 400 }
             )
         }

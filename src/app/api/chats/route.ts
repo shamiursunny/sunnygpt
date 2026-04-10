@@ -1,9 +1,30 @@
 // Chats API - handles all the chat management stuff
 // Built by Shamiur Rashid Sunny (shamiur.com)
-// GET to list chats, DELETE to remove them, PATCH to update titles
+// GET to list chats, POST to create, DELETE to remove, PATCH to update
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+
+// Create new chat
+export async function POST(req: NextRequest) {
+    try {
+        const { title } = await req.json()
+
+        const chat = await prisma.chat.create({
+            data: {
+                title: title || 'New Chat',
+            },
+        })
+
+        return NextResponse.json(chat)
+    } catch (error) {
+        console.error('Error creating chat:', error)
+        return NextResponse.json(
+            { error: 'Failed to create chat' },
+            { status: 500 }
+        )
+    }
+}
 
 // Get all chats - shows them newest first
 export async function GET() {
