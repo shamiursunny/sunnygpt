@@ -1,7 +1,8 @@
-// Database schema for SunnyGPT Prime Edition
+// Database schema for SunnyGPT Prime Edition - SaaS Version
 // Built by Shamiur Rashid Sunny (shamiur.com)
 // 3-Tier Memory System: Neon (7d) → Supabase (30d) → GitHub (Forever)
 // Multi-Resource Pool System with live monitoring
+// Auth: NextAuth.js with OIDC (Google, GitHub, Facebook)
 
 generator client {
   provider = "prisma-client-js"
@@ -13,18 +14,182 @@ datasource db {
 }
 
 // ============================================
-// CORE MODELS (Original)
+// AUTH MODELS (NextAuth.js)
+// ============================================
+
+// User model - main user account
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?   // Avatar URL
+  passwordHash  String?   // For email/password auth (optional)
+  role          String    @default("user") // 'user' | 'admin'
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  accounts      Account[]
+  sessions      AuthSession[]
+  organizationId String?
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+  
+  // Owned data (for single-user mode or personal org)
+  chats         Chat[]
+  seasons       Season[]
+  memories      AIMemory[]
+  settings      UserSettings?
+  
+  @@index([email])
+  @@index([organizationId])
+}
+
+// OAuth accounts (Google, GitHub, Facebook, etc.)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String  // 'oauth' | 'email' | 'credentials'
+  provider          String  // 'google' | 'github' | 'facebook'
+  providerAccountId String  // ID from OAuth provider
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// NextAuth sessions
+model AuthSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// Email verification tokens
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires   DateTime
+  
+  @@unique([identifier, token])
+}
+
+// ============================================
+// ORGANIZATION (Multi-tenant for SaaS)
+// ============================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // For URLs: yourapp.com/org/slug
+  description String?
+  logo        String?
+  plan        String   @default("free") // 'free' | 'pro' | 'enterprise'
+  settings    Json?    // Organization-level settings
+  
+  // Limits
+  maxUsers    Int      @default(5)
+  maxChats    Int      @default(1000)
+  maxStorage  Int      @default(1073741824) // 1GB in bytes
+  
+  // Billing
+  stripeCustomerId String?
+  subscriptionId   String?
+  billingEmail     String?
+  
+  // Status
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  users       User[]
+  chats       Chat[]
+  seasons     Season[]
+  memories    AIMemory[]
+  
+  @@index([slug])
+  @@index([isActive])
+}
+
+// ============================================
+// USER SETTINGS (Per-user preferences)
+// ============================================
+
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // AI Settings
+  defaultModel  String   @default("auto")  // "auto" | "openrouter" | "gemini"
+  systemPrompt  String?  @default("")
+  temperature   Float    @default(0.7)
+  maxTokens     Int      @default(2048)
+  
+  // UI Settings
+  theme         String   @default("system") // "light" | "dark" | "system"
+  fontSize      String   @default("medium") // "small" | "medium" | "large"
+  language      String   @default("en")
+  
+  // Voice Settings
+  voiceEnabled  Boolean  @default(false)
+  voiceModel    String   @default("en-US")
+  speechRate    Float    @default(1.0)
+  
+  // File Upload Settings
+  maxFileSize   Int      @default(5242880)  // 5MB
+  maxFiles      Int      @default(5)
+  allowedTypes  String   @default("image/*,.pdf,.txt,.md")
+  
+  // Notifications
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ============================================
+// CORE MODELS (Updated with organizationId)
 // ============================================
 
 // Chat conversations
 model Chat {
-  id        String    @id @default(cuid())
-  title     String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  seasonId  String?   // Link to season
-  season    Season?   @relation(fields: [seasonId], references: [id])
-  messages  Message[]
+  id             String    @id @default(cuid())
+  title          String
+  isPinned       Boolean   @default(false)
+  isArchived     Boolean   @default(false)
+  
+  // Ownership (organization-level for SaaS)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
+  // Or personal ownership (user-level)
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id])
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+  seasonId       String?   // Link to season
+  season         Season?   @relation(fields: [seasonId], references: [id])
+  messages       Message[]
+  
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // Individual messages in chats
@@ -37,6 +202,9 @@ model Message {
   createdAt DateTime @default(now())
   fileUrl   String?  // Optional file attachment
   fileType  String?  // MIME type of the file
+  
+  @@index([chatId])
+  @@index([createdAt])
 }
 
 // ============================================
@@ -47,6 +215,15 @@ model Message {
 model AIMemory {
   id          String   @id @default(cuid())
   sessionId   String   // Links to chat/season
+  
+  // Ownership
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  // Organization isolation
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  
   content     String   // Summary or key facts
   memoryType  String   // 'summary' | 'entity' | 'fact' | 'preference'
   priority    Int      @default(1) // Higher = more important
@@ -56,6 +233,8 @@ model AIMemory {
   
   @@index([sessionId])
   @@index([expiresAt])
+  @@index([organizationId])
+  @@index([userId])
 }
 
 // ============================================
@@ -71,14 +250,21 @@ model Season {
   endedAt        DateTime?
   status         String    @default("active") // 'active' | 'archived' | 'archived_to_github'
   githubIssueId  String?   // GitHub Issue ID after archive
-  owner          String?   // User/owner ID (optional for multi-user)
   messageCount   Int       @default(0)
+  
+  // Ownership
+  organizationId String?
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   chats          Chat[]
   
   @@index([status])
-  @@index([owner])
+  @@index([organizationId])
+  @@index([userId])
 }
 
 // ============================================
@@ -128,13 +314,12 @@ model ServiceLog {
 }
 
 // ============================================
-// OPTIONAL: USER/SESSION TRACKING
+// LEGACY: Anonymous session tracking (deprecated)
 // ============================================
 
-// User session tracking (for multi-user support)
 model Session {
   id          String   @id @default(cuid())
-  userId      String?  // Optional user ID
+  userId      String?  // Optional user ID (legacy)
   sessionKey  String   @unique // Anonymous session key
   ipAddress   String?
   userAgent   String?

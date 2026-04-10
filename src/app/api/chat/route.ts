@@ -1,12 +1,22 @@
-// Chat API - handles messages and gets AI responses
-// Built by Shamiur Rashid Sunny (shamiur.com)
-// This endpoint manages the whole conversation flow with the AI
+/**
+ * =============================================================================
+ * Chat API - handles messages and gets AI responses
+ * =============================================================================
+ * PROJECT: SunnyGPT Prime Edition - SaaS Edition
+ * AUTHOR: Shamiur Rashid Sunny (shamiur.com)
+ * 
+ * This endpoint manages the whole conversation flow with the AI
+ * Updated with user authentication and multi-tenant isolation
+ * 
+ * =============================================================================
+ */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAIResponse } from '@/lib/ai-client'
 import { rateLimit, getRateLimitHeaders } from '@/lib/rate-limiter'
 import { logger } from '@/lib/logger'
+import { getUserContext, buildOwnershipFilter } from '@/lib/auth-helpers'
 
 // Rate limit: 20 requests per minute per IP
 const RATE_LIMIT_CONFIG = {
@@ -29,12 +39,27 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now()
     const clientIP = getClientIP(req)
 
+    // ==========================================================================
+    // AUTHENTICATION CHECK
+    // ==========================================================================
+    
+    const userContext = await getUserContext()
+    
+    if (!userContext) {
+        return NextResponse.json(
+            { error: 'Unauthorized - Please log in' },
+            { status: 401 }
+        )
+    }
+    
+    const { userId, organizationId } = userContext
+
     try {
         // Rate limiting
         const rateLimitResult = rateLimit(clientIP, RATE_LIMIT_CONFIG)
 
         if (!rateLimitResult.allowed) {
-            logger.warn('Rate limit exceeded', { ip: clientIP })
+            logger.warn('Rate limit exceeded', { ip: clientIP, userId })
             return NextResponse.json(
                 { error: 'Too many requests. Please try again later.' },
                 {
@@ -69,15 +94,39 @@ export async function POST(req: NextRequest) {
 
         let currentChatId = chatId
 
-        // If this is a new conversation, create a chat for it
+        // ==========================================================================
+        // CHAT OWNERSHIP CHECK
+        // ==========================================================================
+        
+        // If existing chat, verify ownership
+        if (currentChatId) {
+            const ownershipFilter = buildOwnershipFilter(userContext)
+            const existingChat = await prisma.chat.findFirst({
+                where: {
+                    id: currentChatId,
+                    ...ownershipFilter
+                }
+            })
+            
+            if (!existingChat) {
+                return NextResponse.json(
+                    { error: 'Chat not found or access denied' },
+                    { status: 403 }
+                )
+            }
+        }
+
+        // If this is a new conversation, create a chat with ownership
         if (!currentChatId) {
             const newChat = await prisma.chat.create({
                 data: {
                     title: sanitizedMessage.substring(0, 50) + (sanitizedMessage.length > 50 ? '...' : ''),
+                    userId: userId,
+                    organizationId: organizationId || null,
                 },
             })
             currentChatId = newChat.id
-            logger.info('New chat created', { chatId: currentChatId })
+            logger.info('New chat created', { chatId: currentChatId, userId, organizationId })
         }
 
         // Store the user's message in the database
@@ -116,8 +165,14 @@ export async function POST(req: NextRequest) {
             },
         })
 
+        // Update chat timestamp
+        await prisma.chat.update({
+            where: { id: currentChatId },
+            data: { updatedAt: new Date() }
+        })
+
         const duration = Date.now() - startTime
-        logger.info('Chat request completed', { chatId: currentChatId, duration })
+        logger.info('Chat request completed', { chatId: currentChatId, userId, duration })
 
         // Send everything back to the client
         return NextResponse.json(
@@ -131,7 +186,7 @@ export async function POST(req: NextRequest) {
         )
     } catch (error) {
         const duration = Date.now() - startTime
-        logger.error('Chat API error', error as Error, { ip: clientIP, duration })
+        logger.error('Chat API error', error as Error, { ip: clientIP, userId, duration })
 
         // Provide detailed error message
         const errorMessage = error instanceof Error

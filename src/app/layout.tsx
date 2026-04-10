@@ -1,10 +1,11 @@
-// Root layout for the app
+// Root layout for the app - SaaS Edition
 // Built by Shamiur Rashid Sunny (shamiur.com)
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { AuthProvider } from "@/components/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Shamiur Rashid Sunny", url: "https://shamiur.com" }],
   creator: "Shamiur Rashid Sunny",
   publisher: "Shamiur Rashid Sunny",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sunnygpt.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sunnygpt-five.vercel.app'),
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -49,7 +50,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ErrorBoundary>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>
