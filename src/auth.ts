@@ -246,7 +246,9 @@ export async function auth() {
   return nextAuthHandler.auth()
 }
 
-export { signIn, signOut } from nextAuthHandler
+// Export signIn and signOut directly
+export const signIn = nextAuthHandler.signIn
+export const signOut = nextAuthHandler.signOut
 
 // ============================================================================
 // HELPER FUNCTIONS
