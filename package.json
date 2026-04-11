@@ -12,7 +12,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "vercel-build": "npm install --legacy-peer-deps --include=dev && next build",
+    "vercel-build": "npm install --legacy-peer-deps --include=dev && npx prisma generate && next build",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
