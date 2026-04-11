@@ -29,7 +29,7 @@
  * =============================================================================
  */
 
-import NextAuth, { NextAuthOptions } from "next-auth"
+import NextAuth, { NextAuthOptions, getServerSession } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import bcrypt from "bcryptjs"
 
@@ -249,22 +249,16 @@ export { nextAuthHandler as default }
 export const signIn = nextAuthHandler.signIn
 export const signOut = nextAuthHandler.signOut
 
-/**
- * Get session using getServerSession - works reliably in App Router
- */
-export { getServerSession } from "next-auth"
-export { authOptions }
-
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
 /**
  * Get current user from request
- * Use in API routes: const session = await auth()
+ * Use in API routes: const session = await getServerSession(authOptions)
  */
 export async function getCurrentUser() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   return session?.user
 }
 
@@ -272,7 +266,7 @@ export async function getCurrentUser() {
  * Check if user is authenticated
  */
 export async function isAuthenticated() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   return !!session
 }
 
@@ -280,7 +274,7 @@ export async function isAuthenticated() {
  * Check if user is admin
  */
 export async function isAdmin() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   return session?.user?.role === "admin"
 }
 
@@ -288,7 +282,7 @@ export async function isAdmin() {
  * Get user's organization ID
  */
 export async function getUserOrganizationId() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   return (session?.user as any)?.organizationId || null
 }
 
