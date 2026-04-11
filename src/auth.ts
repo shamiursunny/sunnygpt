@@ -242,7 +242,9 @@ const nextAuthHandler = NextAuth(authOptions)
 export const { GET, POST } = nextAuthHandler
 
 // Export auth, signIn, signOut for use in other parts of the app
-export const { auth, signIn, signOut } = nextAuthHandler
+export const auth = nextAuthHandler.auth
+export const signIn = nextAuthHandler.signIn
+export const signOut = nextAuthHandler.signOut
 
 // ============================================================================
 // HELPER FUNCTIONS
