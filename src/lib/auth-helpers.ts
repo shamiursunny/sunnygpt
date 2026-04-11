@@ -10,7 +10,8 @@
  * =============================================================================
  */
 
-import { auth } from "@/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/auth"
 import { NextResponse } from "next/server"
 
 /**
@@ -18,7 +19,7 @@ import { NextResponse } from "next/server"
  * Returns { userId, organizationId, isAdmin } or unauthorized error
  */
 export async function getUserContext() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   
   if (!session?.user) {
     return null
