@@ -44,13 +44,12 @@ import { sendWelcomeEmail, sendAdminNewUserNotification } from "@/lib/email-serv
 // ============================================================================
 
 /**
- * NextAuth configuration with OIDC providers
+ * NextAuth configuration with Supabase as primary auth
  * 
  * Supports:
- * - Google OAuth (requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
- * - GitHub OAuth (requires GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET)
- * - Facebook OAuth (requires FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET)
- * - Email/Password (optional, uses bcrypt for hashing)
+ * - Supabase Auth (primary - handles Google, GitHub, email magic links)
+ * - Keep Google OAuth as fallback
+ * - Keep GitHub OAuth as fallback
  */
 export const authOptions: NextAuthOptions = {
   // Use Prisma adapter for database storage
@@ -68,10 +67,36 @@ export const authOptions: NextAuthOptions = {
     error: "/login",           // Error page redirects to login
     verifyRequest: "/verify",  // Email verification (optional)
   },
-  
+
   // OAuth Providers
   providers: [
-    // Google OAuth
+    // Supabase OAuth - acts as aggregator for Google, GitHub, etc.
+    // Users authenticate via Supabase's hosted auth UI
+    {
+      id: "supabase",
+      name: "Supabase",
+      type: "oauth",
+      clientId: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      clientSecret: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+      authorization: {
+        url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/authorize?provider=github`,
+        params: { 
+          redirect_to: `${process.env.NEXTAUTH_URL || 'https://ai.shamiur.com'}/api/auth/callback/supabase`
+        },
+      },
+      token: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token`,
+      userinfo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
+      profile(profile: any) {
+        return {
+          id: profile.id,
+          name: profile.user_metadata?.full_name || profile.email?.split('@')[0],
+          email: profile.email,
+          image: profile.user_metadata?.avatar_url || profile.avatar_url,
+        }
+      },
+    },
+    
+    // Google OAuth (fallback)
     {
       id: "google",
       name: "Google",
@@ -98,7 +123,7 @@ export const authOptions: NextAuthOptions = {
       },
     },
     
-    // GitHub OAuth
+    // GitHub OAuth (fallback)
     {
       id: "github",
       name: "GitHub",
@@ -117,29 +142,6 @@ export const authOptions: NextAuthOptions = {
           name: profile.name || profile.login,
           email: profile.email,
           image: profile.avatar_url,
-        }
-      },
-    },
-    
-    // Facebook OAuth
-    {
-      id: "facebook",
-      name: "Facebook",
-      type: "oauth",
-      clientId: process.env.FACEBOOK_CLIENT_ID || "",
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
-      authorization: {
-        url: "https://www.facebook.com/v18.0/dialog/oauth",
-        params: { response_type: "code" },
-      },
-      token: "https://graph.facebook.com/v18.0/oauth/access_token",
-      userinfo: "https://graph.facebook.com/me?fields=id,name,email,picture",
-      profile(profile) {
-        return {
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture?.data?.url,
         }
       },
     },

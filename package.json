@@ -25,6 +25,8 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.0.0",
     "@prisma/client": "^5.22.0",
+    "@supabase/auth-js": "^2.103.0",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.83.0",
     "@tailwindcss/postcss": "^4",
     "@tensorflow/tfjs": "^4.22.0",
@@ -49,7 +51,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4"
   },
-"devDependencies": {
+  "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
