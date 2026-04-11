@@ -12,7 +12,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "vercel-build": "npm install --legacy-peer-deps && npm install @tailwindcss/postcss tailwindcss --legacy-peer-deps && next build",
+    "vercel-build": "npm install --legacy-peer-deps --include=dev && next build",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -26,6 +26,7 @@
     "@prisma/adapter-neon": "^7.0.0",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.83.0",
+    "@tailwindcss/postcss": "^4",
     "@tensorflow/tfjs": "^4.22.0",
     "@testing-library/dom": "^10.4.1",
     "@types/pg": "^8.15.6",
@@ -45,11 +46,11 @@
     "react-image-crop": "^11.0.10",
     "react-markdown": "^10.1.0",
     "react-player": "^3.4.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4"
   },
-  "devDependencies": {
+"devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
-    "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
@@ -65,7 +66,6 @@
     "eslint-config-next": "^16.2.3",
     "happy-dom": "^16.6.0",
     "jsdom": "^25.0.1",
-    "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^2.1.8"
   },
