@@ -241,10 +241,8 @@ const nextAuthHandler = NextAuth(authOptions)
 // Export handlers for API routes - GET and POST for all auth endpoints
 export const { GET, POST } = nextAuthHandler
 
-// Export auth wrapper function for use in other parts of the app
-export async function auth() {
-  return nextAuthHandler.auth()
-}
+// Export auth as the handler's auth method
+export const auth = nextAuthHandler.auth
 
 // Export signIn and signOut directly
 export const signIn = nextAuthHandler.signIn
