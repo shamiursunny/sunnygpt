@@ -66,9 +66,11 @@ export function Sidebar({ currentChatId, onChatSelect, onNewChat, onChatDeleted,
         try {
             const response = await fetch('/api/chats')
             const data = await response.json()
-            setChats(data)
+            // Ensure we set an array even if API returns error object
+            setChats(Array.isArray(data) ? data : [])
         } catch (error) {
             console.error('Failed to load chats:', error)
+            setChats([])
         }
     }
 
