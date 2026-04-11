@@ -241,12 +241,19 @@ const nextAuthHandler = NextAuth(authOptions)
 // Export handlers for API routes - GET and POST for all auth endpoints
 export const { GET, POST } = nextAuthHandler
 
-// Export auth as the handler's auth method
-export const auth = nextAuthHandler.auth
+// Export auth function for use in other parts of the app
+// Use getServerSession pattern which is more reliable in Next.js App Router
+export { nextAuthHandler as default }
 
-// Export signIn and signOut directly
+// Export signIn and signOut
 export const signIn = nextAuthHandler.signIn
 export const signOut = nextAuthHandler.signOut
+
+/**
+ * Get session using getServerSession - works reliably in App Router
+ */
+export { getServerSession } from "next-auth"
+export { authOptions }
 
 // ============================================================================
 // HELPER FUNCTIONS
