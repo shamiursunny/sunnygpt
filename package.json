@@ -12,7 +12,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "vercel-build": "npm install --legacy-peer-deps && next build",
+    "vercel-build": "npm install --legacy-peer-deps && npm install @tailwindcss/postcss tailwindcss --legacy-peer-deps && next build",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
